@@ -7,8 +7,6 @@ const jwt = require("jsonwebtoken");
 const { UserModel } = require("../Database/Model/UserModel");
 const { BlacklistModel } = require("../Database/Model/BlacklistModel");
 const { SessionModel } = require("../Database/Model/SessionModel");
-const { Validate_User } = require("../middleware/auth.middleware");
-const { access } = require("fs");
 
 router.post("/register", async (req, res) => {
   try {
@@ -66,7 +64,7 @@ router.post("/register", async (req, res) => {
       },
       process.env.JWT,
       {
-        expiresIn: "15m",
+        expiresIn: "8m",
       },
     );
     res.cookie("refreshtoken", refreshtoken, {
@@ -121,7 +119,7 @@ router.post("/login", async (req, res) => {
     });
     await session.save();
     const accesstoken = jwt.sign({ id: user._id }, process.env.JWT, {
-      expiresIn: "15m",
+      expiresIn: "8m",
     });
     res.cookie("refreshtoken", refreshtoken, {
       httpOnly: true,
@@ -188,12 +186,6 @@ router.get("/refreshtoken", async (req, res) => {
     .update(refreshtoken)
     .digest("hex");
 
-  console.log(
-    "RefreshtokenHash",
-    refreshtokenhash,
-    "Refreshtoken",
-    refreshtoken,
-  );
   const session = await SessionModel.findOne({
     refreshtokenhash,
     revoke: false,
@@ -202,7 +194,7 @@ router.get("/refreshtoken", async (req, res) => {
     return res.status(401).json({ message: "Invalid Session Token" });
   }
   const accesstoken = jwt.sign({ id: decoded.id }, process.env.JWT, {
-    expiresIn: "15m",
+    expiresIn: "8m",
   });
 
   const newrefreshtoken = jwt.sign(
